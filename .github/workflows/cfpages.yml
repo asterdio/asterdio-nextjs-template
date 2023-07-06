@@ -1,0 +1,53 @@
+name: Cloudflare pages deployment and notifications
+on: 
+  push:
+    branches:
+        - staging
+        - uat
+        - main
+  workflow_dispatch: 
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    name: Publish to Cloudflare Pages
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      - name: Set branch-based environment variables
+        uses: iamtheyammer/branch-env-vars@v1.2.1
+        with:
+          bevOverwrite: true
+          NEXT_PUBLIC_APP_URL=: |
+            staging:https://myordr-api.asterdio.xyz
+            uat:https://uat-api.myordr.com
+            main:https://api.myordr.com
+          NEXT_PUBLIC_APP_API_KEY: |
+            staging:https://myordr-admin.asterdio.xyz
+            uat:https://uat-admin.myordr.com
+            main:https://admin.myordr.com
+      - name: Print environment variables after action test
+        run: |
+          env | grep REACT
+      - uses: bahmutov/npm-install@v1
+        with:
+          useLockFile: false
+      - run: yarn build
+        env: 
+          CI: false
+      - uses: FranzDiebold/github-env-vars-action@v2
+      - name: Publish to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken:  ${{secrets.CF_API_TOKEN}}
+          accountId:  ${{secrets.CF_ACCOUNT_ID}}
+          projectName:  "${{secrets.CF_PROJECT_NAME}}"
+          directory: /
+          branch: ${{vars.CI_ACTION_REF_NAME_SLUG}}
+          # Optional: Enable this if you want to have GitHub Deployments triggered
+          gitHubToken: ${{ secrets.GH_TOKEN }}
