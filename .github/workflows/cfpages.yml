@@ -1,11 +1,11 @@
 name: Cloudflare pages deployment and notifications
-on: 
+on:
   push:
     branches:
-        - staging
-        - uat
-        - main
-  workflow_dispatch: 
+      - staging
+      - uat
+      - main
+  workflow_dispatch:
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -38,15 +38,15 @@ jobs:
         with:
           useLockFile: false
       - run: yarn build
-        env: 
+        env:
           CI: false
       - uses: FranzDiebold/github-env-vars-action@v2
       - name: Publish to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
-          apiToken:  ${{secrets.CF_API_TOKEN}}
-          accountId:  ${{secrets.CF_ACCOUNT_ID}}
-          projectName:  "${{secrets.CF_PROJECT_NAME}}"
+          apiToken: ${{secrets.CF_API_TOKEN}}
+          accountId: ${{secrets.CF_ACCOUNT_ID}}
+          projectName: '${{secrets.CF_PROJECT_NAME}}'
           directory: /
           branch: ${{vars.CI_ACTION_REF_NAME_SLUG}}
           # Optional: Enable this if you want to have GitHub Deployments triggered
